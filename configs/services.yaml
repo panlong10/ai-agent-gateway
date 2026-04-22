@@ -1,0 +1,35 @@
+# 服务配置文件示例
+# 可以通过管理API导入这些配置
+
+services:
+  # ERP 订单服务
+  - name: "ERP 订单服务"
+    path: "/erp/orders"
+    method: "POST"
+    target_url: "http://localhost:3000/api/orders"
+    timeout: 30
+    enabled: true
+
+  # ERP 产品查询
+  - name: "ERP 产品查询"
+    path: "/erp/products"
+    method: "GET"
+    target_url: "http://localhost:3000/api/products"
+    timeout: 15
+    enabled: true
+
+  # CRM 客户管理
+  - name: "CRM 客户管理"
+    path: "/crm/customers"
+    method: "POST"
+    target_url: "http://localhost:4000/api/customers"
+    timeout: 20
+    enabled: true
+
+  # 库存查询
+  - name: "库存查询"
+    path: "/inventory/query"
+    method: "GET"
+    target_url: "http://localhost:5000/api/stock"
+    timeout: 10
+    enabled: true
