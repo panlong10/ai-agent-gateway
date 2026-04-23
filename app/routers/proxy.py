@@ -21,6 +21,7 @@ async def proxy_request(
 ):
     method = request.method
     path = f"/{service_path}"
+    print(f"Proxy: path={path}, method={method}")
 
     api_key = getattr(request.state, "agent_api_key", None)
     is_admin = getattr(request.state, "is_admin", False)
@@ -44,6 +45,7 @@ async def proxy_request(
         )
     )
     service = result.scalar_one_or_none()
+    print(f"DB Query: path={path}, method={method}, result={service}")
 
     if not service:
         return JSONResponse(

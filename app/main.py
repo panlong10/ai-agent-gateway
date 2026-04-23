@@ -6,7 +6,7 @@ from app.config import get_settings
 from app.database import init_db
 from app.middleware.auth import AuthMiddleware
 from app.middleware.ratelimit import RateLimitMiddleware
-from app.routers import admin, health, proxy
+from app.routers import admin, health, proxy, nlp
 
 
 @asynccontextmanager
@@ -36,6 +36,7 @@ app.add_middleware(RateLimitMiddleware)
 app.include_router(health.router)
 app.include_router(admin.router)
 app.include_router(proxy.router)
+app.include_router(nlp.router)
 
 
 @app.get("/")

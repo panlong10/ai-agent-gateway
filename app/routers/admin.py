@@ -5,6 +5,8 @@ from app.database import get_db
 from app.models import agent as agent_model
 from app.models import log as log_model
 from app.models import service as service_model
+from app.models import intent as intent_model
+from app.models import llm_config as llm_config_model
 from app.schemas import (
     AgentCreate,
     AgentListResponse,
@@ -177,3 +179,133 @@ async def list_logs(
 async def get_stats(db: AsyncSession = Depends(get_db)):
     stats = await log_model.get_stats(db)
     return stats
+
+
+from app.schemas.intent import IntentCreate, IntentResponse, IntentUpdate
+from app.schemas.llm_config import LLMConfigCreate, LLMConfigResponse, LLMConfigUpdate
+
+
+@router.post(
+    "/intents", response_model=IntentResponse, status_code=status.HTTP_201_CREATED
+)
+async def create_intent(
+    data: IntentCreate,
+    db: AsyncSession = Depends(get_db),
+):
+    intent = await intent_model.create_intent(db, data)
+    return intent
+
+
+@router.get("/intents")
+async def list_intents(
+    page: int = 1,
+    page_size: int = 20,
+    db: AsyncSession = Depends(get_db),
+):
+    skip = (page - 1) * page_size
+    intents, total = await intent_model.list_intents(db, skip, page_size)
+    items = [IntentResponse.model_validate(i) for i in intents]
+    return {"total": total, "items": items}
+
+
+@router.get("/intents/{intent_id}", response_model=IntentResponse)
+async def get_intent(
+    intent_id: str,
+    db: AsyncSession = Depends(get_db),
+):
+    intent = await intent_model.get_intent(db, intent_id)
+    if not intent:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Intent not found"
+        )
+    return intent
+
+
+@router.put("/intents/{intent_id}", response_model=IntentResponse)
+async def update_intent(
+    intent_id: str,
+    data: IntentUpdate,
+    db: AsyncSession = Depends(get_db),
+):
+    intent = await intent_model.update_intent(db, intent_id, data)
+    if not intent:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Intent not found"
+        )
+    return intent
+
+
+@router.delete("/intents/{intent_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_intent(
+    intent_id: str,
+    db: AsyncSession = Depends(get_db),
+):
+    success = await intent_model.delete_intent(db, intent_id)
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Intent not found"
+        )
+
+
+@router.post(
+    "/llm-configs",
+    response_model=LLMConfigResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def create_llm_config(
+    data: LLMConfigCreate,
+    db: AsyncSession = Depends(get_db),
+):
+    config = await llm_config_model.create_llm_config(db, data)
+    return config
+
+
+@router.get("/llm-configs")
+async def list_llm_configs(
+    page: int = 1,
+    page_size: int = 20,
+    db: AsyncSession = Depends(get_db),
+):
+    skip = (page - 1) * page_size
+    configs, total = await llm_config_model.list_llm_configs(db, skip, page_size)
+    items = [LLMConfigResponse.model_validate(c) for c in configs]
+    return {"total": total, "items": items}
+
+
+@router.get("/llm-configs/{config_id}", response_model=LLMConfigResponse)
+async def get_llm_config(
+    config_id: str,
+    db: AsyncSession = Depends(get_db),
+):
+    config = await llm_config_model.get_llm_config(db, config_id)
+    if not config:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="LLM Config not found"
+        )
+    return config
+
+
+@router.put("/llm-configs/{config_id}", response_model=LLMConfigResponse)
+async def update_llm_config(
+    config_id: str,
+    data: LLMConfigUpdate,
+    db: AsyncSession = Depends(get_db),
+):
+    config = await llm_config_model.update_llm_config(db, config_id, data)
+    if not config:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="LLM Config not found"
+        )
+    return config
+
+
+@router.delete("/llm-configs/{config_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_llm_config(
+    config_id: str,
+    db: AsyncSession = Depends(get_db),
+):
+    success = await llm_config_model.delete_llm_config(db, config_id)
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="LLM Config not found"
+        )

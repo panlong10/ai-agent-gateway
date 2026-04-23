@@ -13,6 +13,7 @@ async def forward_request(
     service_id: str,
     request: Request,
     agent_api_key: str | None = None,
+    extra_params: dict | None = None,
 ):
     service = await service_model.get_service(db, service_id)
     if not service or not service.enabled:
@@ -25,7 +26,9 @@ async def forward_request(
     if target_url.endswith("/"):
         target_url = target_url[:-1]
 
-    request_path = request.url.path.replace("/proxy", "", 1)
+    request_path = request.url.path.replace("/proxy", "", 1).replace(
+        "/nlp/agent", "", 1
+    )
     full_url = f"{target_url}{request_path}"
     print(f"FULL_URL: {full_url}")
 
@@ -35,8 +38,16 @@ async def forward_request(
     if agent_api_key:
         headers["X-Agent-Token"] = agent_api_key
 
-    has_body = request.method in ["POST", "PUT", "PATCH"]
+has_body = request.method in ["POST", "PUT", "PATCH"]
     body = await request.body() if has_body else None
+    
+    if extra_params and not body:
+        import json
+        body = json.dumps(extra_params)
+        if "Content-Type" not in headers:
+            headers["Content-Type"] = "application/json"
+
+    params = dict(request.query_params)
 
     try:
         async with httpx.AsyncClient(
@@ -48,7 +59,7 @@ async def forward_request(
                 url=full_url,
                 headers=headers,
                 content=body,
-                params=request.query_params,
+                params=params,
             )
         return response.text
     except httpcore.ConnectError as e:
