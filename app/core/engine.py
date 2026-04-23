@@ -39,14 +39,14 @@ async def forward_request(
         headers["X-Agent-Token"] = agent_api_key
 
 has_body = request.method in ["POST", "PUT", "PATCH"]
-    body = await request.body() if has_body else None
+body = await request.body() if has_body else None
     
     if extra_params and not body:
         import json
         body = json.dumps(extra_params)
         if "Content-Type" not in headers:
             headers["Content-Type"] = "application/json"
-
+    
     params = dict(request.query_params)
 
     try:
